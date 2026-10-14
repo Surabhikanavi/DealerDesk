@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DealerDesk Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f5f7; --surface: #ffffff; --surface-2: #f8f9fb; --ink: #14161a; --ink-2: #3d434d; --muted: #7a818c;
+    --line: #e6e8ec; --brand: #f5b700; --brand-ink: #1a1400; --brand-soft: #fff6d6;
+    --ok: #16a34a; --ok-soft: #e8f7ee; --warn: #d97706; --warn-soft: #fef3e2; --bad: #dc2626; --bad-soft: #fdecec;
+    --info: #2563eb; --info-soft: #e8effd; --side: #111318; --side-ink: #c9ced6;
+    --shadow: 0 1px 2px rgba(16,24,40,.04), 0 4px 16px rgba(16,24,40,.06);
+    --shadow-lg: 0 12px 40px rgba(16,24,40,.18); --r: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d0f13; --surface: #161920; --surface-2: #1c2029; --ink: #eef0f3; --ink-2: #c3c8d0; --muted: #8a919c;
+      --line: #262b35; --brand-soft: #2a2410; --ok-soft: #0f2a1a; --warn-soft: #2d2110; --bad-soft: #2e1414; --info-soft: #14203a;
+      --side: #0a0c10; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font: 14.5px/1.5 "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; }
+  .app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+
+  /* Sidebar */
+  aside { background: var(--side); color: var(--side-ink); padding: 22px 16px; display: flex; flex-direction: column; gap: 22px; position: sticky; top: 0; height: 100vh; }
+  .logo { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
+  .logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #ffd84d, var(--brand)); display: grid; place-items: center; color: var(--brand-ink); font-weight: 800; font-size: 17px; box-shadow: 0 4px 14px rgba(245,183,0,.35); }
+  .logo-text { color: #fff; font-weight: 800; font-size: 17px; letter-spacing: -.2px; }
+  .logo-text small { display: block; color: var(--muted); font-weight: 500; font-size: 11.5px; letter-spacing: .3px; }
+  nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; border-radius: 10px; background: none; color: var(--side-ink); cursor: pointer; font-weight: 500; text-align: left; transition: background .15s, color .15s; }
+  .nav-btn:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .nav-btn.on { background: rgba(245,183,0,.14); color: var(--brand); }
+  .nav-btn svg { width: 19px; height: 19px; flex: none; }
+  .nav-btn .count { margin-left: auto; background: var(--brand); color: var(--brand-ink); border-radius: 20px; font-size: 11.5px; font-weight: 700; padding: 1px 8px; }
+  .dealer-card { margin-top: auto; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px; }
+  .dealer-card label { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); font-weight: 600; }
+  .dealer-card select { width: 100%; margin-top: 6px; background: #1d2129; color: #fff; border: 1px solid #2c323d; border-radius: 8px; padding: 8px; font: inherit; }
+  .dealer-meta { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+
+  /* Main */
+  main { padding: 28px 32px 48px; min-width: 0; }
+  .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+  h1 { font-size: 26px; letter-spacing: -.5px; margin: 0; font-weight: 800; }
+  .sub { color: var(--muted); margin: 4px 0 0; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+  .pad { padding: 18px 20px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .kpi { padding: 16px 18px; display: flex; gap: 14px; align-items: center; }
+  .kpi-ico { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; }
+  .kpi-ico svg { width: 21px; height: 21px; }
+  .kpi b { display: block; font-size: 22px; letter-spacing: -.4px; font-variant-numeric: tabular-nums; }
+  .kpi span { color: var(--muted); font-size: 12.5px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 14px; margin-bottom: 14px; }
+  .field { position: relative; flex: 1 1 220px; }
+  .field svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--muted); }
+  .field input { width: 100%; padding: 10px 12px 10px 38px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); color: var(--ink); font: inherit; outline: none; transition: border .15s, box-shadow .15s; }
+  .field input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(245,183,0,.2); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .chip { border: 1px solid var(--line); background: var(--surface); padding: 6px 13px; border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--ink-2); transition: all .15s; }
+  .chip:hover { border-color: var(--brand); }
+  .chip.on { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); padding: 9px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13.5px; transition: transform .1s, background .15s, box-shadow .15s; white-space: nowrap; }
+  .btn:hover { background: var(--surface-2); }
+  .btn:active { transform: scale(.97); }
+  .btn svg { width: 16px; height: 16px; }
+  .btn-primary { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); box-shadow: 0 2px 10px rgba(245,183,0,.3); }
+  .btn-primary:hover { background: #ffc61a; }
+  .btn-dark { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+  .btn-dark:hover { background: var(--ink-2); }
+  .btn-danger { color: var(--bad); }
+  .btn-danger:hover { background: var(--bad-soft); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-sm { padding: 6px 11px; font-size: 12.5px; border-radius: 8px; }
+
+  /* Product grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .prod { padding: 16px; display: flex; flex-direction: column; gap: 10px; transition: transform .15s, box-shadow .15s, border-color .15s; }
+  .prod:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: transparent; }
+  .prod-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .cat-ico { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--brand-soft); color: #b58700; }
+  .cat-ico svg { width: 20px; height: 20px; }
+  .sku { font: 600 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); letter-spacing: .3px; }
+  .prod h3 { font-size: 14.5px; line-height: 1.35; margin: 0; font-weight: 650; }
+  .prod .meta { font-size: 12.5px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+  .prod-foot { display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto; padding-top: 6px; }
+  .price { font-size: 19px; font-weight: 800; letter-spacing: -.3px; font-variant-numeric: tabular-nums; }
+  .price small { font-size: 11px; color: var(--muted); font-weight: 500; display: block; letter-spacing: 0; }
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .b-ok { background: var(--ok-soft); color: var(--ok); } .b-warn { background: var(--warn-soft); color: var(--warn); }
+  .b-bad { background: var(--bad-soft); color: var(--bad); } .b-info { background: var(--info-soft); color: var(--info); }
+  .b-muted { background: var(--surface-2); color: var(--muted); }
+  .pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 20px; color: var(--muted); }
+
+  /* Drawer */
+  .scrim { position: fixed; inset: 0; background: rgba(10,12,16,.45); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 40; backdrop-filter: blur(2px); }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(440px, 100vw); background: var(--surface); z-index: 50; transform: translateX(100%); transition: transform .25s cubic-bezier(.2,.8,.2,1); display: flex; flex-direction: column; box-shadow: var(--shadow-lg); }
+  .drawer.open { transform: none; }
+  .drawer-head { padding: 20px 22px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+  .drawer-head h2 { margin: 0; font-size: 18px; }
+  .drawer-body { flex: 1; overflow: auto; padding: 8px 22px; }
+  .drawer-foot { border-top: 1px solid var(--line); padding: 18px 22px; background: var(--surface-2); }
+  .cart-line { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .cart-line h4 { margin: 0; font-size: 13.5px; font-weight: 600; }
+  .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .stepper button { width: 30px; height: 30px; border: 0; background: var(--surface-2); cursor: pointer; font-size: 16px; }
+  .stepper input { width: 46px; height: 30px; text-align: center; border: 0; background: var(--surface); color: var(--ink); font: inherit; font-weight: 600; -moz-appearance: textfield; }
+  .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .sum-row { display: flex; justify-content: space-between; padding: 3px 0; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .sum-row.total { color: var(--ink); font-weight: 800; font-size: 17px; padding-top: 10px; margin-top: 6px; border-top: 1px dashed var(--line); }
+  .icon-btn { border: 0; background: none; cursor: pointer; padding: 6px; border-radius: 8px; color: var(--muted); display: grid; place-items: center; }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  /* Orders */
+  .split { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 18px; align-items: start; }
+  .order-list { max-height: calc(100vh - 170px); overflow: auto; }
+  .order-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .12s; }
+  .order-row:hover { background: var(--surface-2); }
+  .order-row.on { background: var(--brand-soft); box-shadow: inset 3px 0 0 var(--brand); }
+  .order-row b { font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .order-row .amt { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .timeline { display: flex; align-items: center; margin: 18px 0 22px; }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--muted); flex: none; width: 82px; text-align: center; }
+  .step i { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: grid; place-items: center; font-style: normal; font-size: 12px; }
+  .step.done i { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .step.cur i { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); box-shadow: 0 0 0 5px rgba(245,183,0,.2); }
+  .step.done, .step.cur { color: var(--ink); }
+  .bar { flex: 1; height: 2px; background: var(--line); margin-bottom: 22px; }
+  .bar.done { background: var(--ok); }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .totals { margin-left: auto; width: min(320px, 100%); margin-top: 14px; }
+  .alert { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; background: var(--bad-soft); color: var(--bad); font-weight: 500; margin: 14px 0; }
+  .alert svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+  .alert ul { margin: 6px 0 0; padding-left: 18px; font-weight: 400; }
+  .note { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; background: var(--info-soft); color: var(--info); font-size: 13px; margin-bottom: 14px; }
+  .note svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+  /* Assistant */
+  .chat-wrap { display: grid; grid-template-rows: 1fr auto; height: calc(100vh - 150px); min-height: 480px; overflow: hidden; }
+  .chat { overflow: auto; padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+  .msg { display: flex; gap: 10px; max-width: 760px; }
+  .msg.me { align-self: flex-end; flex-direction: row-reverse; }
+  .avatar { width: 32px; height: 32px; border-radius: 10px; flex: none; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+  .msg.bot .avatar { background: linear-gradient(135deg, #ffd84d, var(--brand)); color: var(--brand-ink); }
+  .msg.me .avatar { background: var(--ink); color: var(--surface); }
+  .bubble { padding: 11px 15px; border-radius: 14px; white-space: pre-wrap; line-height: 1.55; }
+  .msg.bot .bubble { background: var(--surface-2); border: 1px solid var(--line); border-top-left-radius: 4px; }
+  .msg.me .bubble { background: var(--ink); color: var(--surface); border-top-right-radius: 4px; }
+  .bubble strong { font-weight: 700; }
+  .tool-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .tool { font: 500 11px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 3px 8px; border-radius: 6px; background: var(--info-soft); color: var(--info); }
+  .mini-cards { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .mini { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 10px 12px; min-width: 200px; flex: 1 1 200px; max-width: 280px; }
+  .mini .sku { display: block; } .mini b { font-size: 13px; display: block; margin: 2px 0 6px; }
+  .mini-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .action-card { margin-top: 10px; border: 1px solid var(--ok); background: var(--ok-soft); color: var(--ok); border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 600; font-size: 13px; }
+  .typing { display: inline-flex; gap: 4px; padding: 14px 16px; }
+  .typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay: .2s; } .typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+  .composer { border-top: 1px solid var(--line); padding: 14px; background: var(--surface); }
+  .suggest { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .composer form { display: flex; gap: 10px; }
+  .composer input { flex: 1; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); color: var(--ink); font: inherit; outline: none; }
+  .composer input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(245,183,0,.2); }
+
+  /* Reorder */
+  .meter { position: relative; height: 8px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line); min-width: 120px; overflow: hidden; }
+  .meter span { position: absolute; inset: 0 auto 0 0; border-radius: 6px; }
+  .meter i { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); }
+
+  /* States */
+  .empty { text-align: center; padding: 56px 20px; color: var(--muted); }
+  .empty svg { width: 46px; height: 46px; color: var(--line); margin-bottom: 8px; }
+  .empty h3 { color: var(--ink); margin: 6px 0; font-size: 16px; }
+  .skeleton { background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 37%, var(--surface-2) 63%); background-size: 400% 100%; animation: shimmer 1.3s ease infinite; border-radius: 8px; }
+  @keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+  .toasts { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 60; align-items: center; }
+  .toast { background: var(--ink); color: var(--surface); padding: 11px 18px; border-radius: 12px; box-shadow: var(--shadow-lg); font-weight: 500; display: flex; align-items: center; gap: 10px; animation: rise .25s ease; }
+  .toast.bad { background: var(--bad); color: #fff; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .scroll-x { overflow-x: auto; }
+  .mobile-top { display: none; }
+
+  @media (max-width: 1080px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .split { grid-template-columns: 1fr; } .order-list { max-height: 320px; } }
+  @media (max-width: 820px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .toolbar .btn { flex: 1 1 100%; }
+    aside { position: fixed; z-index: 45; height: 100vh; width: 260px; transform: translateX(-100%); transition: transform .25s; }
+    aside.open { transform: none; }
+    .mobile-top { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--side); color: #fff; position: sticky; top: 0; z-index: 30; }
+    .mobile-top .icon-btn { color: #fff; }
+    main { padding: 18px 16px 40px; }
+    .hide-sm { display: none; }
+    .step { width: 60px; font-size: 10.5px; }
+    .chat-wrap { height: calc(100vh - 190px); }
+  }
+</style>
+</head>
+<body>
+<div class="mobile-top">
+  <button class="icon-btn" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  <div class="logo-text">DealerDesk</div>
+</div>
+<div class="app">
+  <aside id="side">
+    <div class="logo"><div class="logo-mark">D</div><div class="logo-text">DealerDesk<small>by VIKMO</small></div></div>
+    <nav id="nav"></nav>
+    <div class="dealer-card">
+      <label for="dealer">Ordering as</label>
+      <select id="dealer"></select>
+      <div class="dealer-meta" id="dealerMeta"></div>
+    </div>
+  </aside>
+  <main id="view"></main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<section class="drawer" id="drawer" aria-label="Cart">
+  <div class="drawer-head"><h2>Your cart</h2><button class="icon-btn" id="closeCart" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="drawer-body" id="cartBody"></div>
+  <div class="drawer-foot" id="cartFoot"></div>
+</section>
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const inr = v => "₹" + Number(v).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const paise = s => { const [r, p = "0"] = String(s).split("."); return Number(r) * 100 + Number((p + "00").slice(0, 2)); };
+const fromPaise = n => inr(n / 100);
+
+const I = {
+  grid: '<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
+  cart: '<path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/>',
+  box: '<path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/>',
+  chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  bike: '<circle cx="6" cy="17" r="3.5"/><circle cx="18" cy="17" r="3.5"/><path d="M6 17l4-7h5l3 7M10 10L8 6H5M15 10l1-3h3"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  alert: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
+  check: '<path d="M5 12l5 5L20 7"/>',
+  send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>',
+  warn: '<path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18h.01"/>',
+  layers: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>',
+};
+const icon = (n, cls = "") => `<svg class="${cls}" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${I[n]}</svg>`;
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { "Content-Type": "application/json", ...(opts.headers || {}) } });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) { const e = body.error || {}; const err = new Error(e.message || `Request failed (${res.status})`); err.code = e.code; err.details = e.details || []; throw err; }
+  return body;
+}
+function toast(text, bad = false) {
+  const t = document.createElement("div");
+  t.className = "toast" + (bad ? " bad" : "");
+  t.innerHTML = icon(bad ? "alert" : "check") + `<span>${esc(text)}</span>`;
+  t.querySelector("svg").style.cssText = "width:18px;height:18px";
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), 3600);
+}
+const stockBadge = n => n <= 0 ? `<span class="badge b-bad">Out of stock</span>` : n < 10 ? `<span class="badge b-warn">Only ${n} left</span>` : `<span class="badge b-ok">${n} in stock</span>`;
+const STATUS = { DRAFT: "b-muted", CONFIRMED: "b-info", DISPATCHED: "b-warn", DELIVERED: "b-ok", CANCELLED: "b-bad" };
+const statusBadge = s => `<span class="badge ${STATUS[s] || "b-muted"}">${esc(s[0] + s.slice(1).toLowerCase())}</span>`;
+const errorAlert = e => `<div class="alert">${icon("alert")}<div>${esc(e.message)}${e.code === "INSUFFICIENT_STOCK" && e.details.length ?
+  `<ul>${e.details.map(d => `<li><b>${esc(d.sku)}</b>: requested ${d.requested}, only ${d.available} available</li>`).join("")}</ul>` : ""}</div></div>`;
+
+/* ---------- state ---------- */
+const state = { tab: "catalogue", q: "", vehicle: "", category: "", page: 1, cart: loadCart(), stats: null, dealers: [], openOrder: null,
+                session: "portal-" + Math.random().toString(36).slice(2, 9), chatLog: [] };
+function loadCart() { try { return JSON.parse(localStorage.getItem("dd-cart") || "{}"); } catch { return {}; } }
+function saveCart() { try { localStorage.setItem("dd-cart", JSON.stringify(state.cart)); } catch {} renderNav(); }
+const dealerId = () => Number($("#dealer").value);
+
+/* ---------- nav ---------- */
+const TABS = [["catalogue", "Catalogue", "grid"], ["orders", "Orders", "box"], ["assistant", "Assistant", "chat"], ["reorder", "Reorder", "chart"]];
+function renderNav() {
+  const n = Object.keys(state.cart).length;
+  $("#nav").innerHTML = TABS.map(([k, label, ic]) => `<button class="nav-btn ${state.tab === k ? "on" : ""}" data-tab="${k}">${icon(ic)}${label}</button>`).join("")
+    + `<button class="nav-btn" data-cart="1">${icon("cart")}Cart${n ? `<span class="count">${n}</span>` : ""}</button>`;
+}
+$("#nav").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  $("#side").classList.remove("open");
+  if (b.dataset.cart) return openCart();
+  state.tab = b.dataset.tab; show();
+};
+$("#menuBtn").onclick = () => $("#side").classList.toggle("open");
+function show() {
+  if (location.hash.slice(1).split("/")[0] !== state.tab) history.pushState(null, "", "#" + state.tab);
+  renderNav(); VIEWS[state.tab](); window.scrollTo(0, 0);
+}
+const tabFromHash = () => {  // "#orders" or "#orders/ORD-20261010-0002"
+  const [t, arg] = decodeURIComponent(location.hash.slice(1)).split("/");
+  if (t === "orders" && arg) state.openOrder = arg;
+  return VIEWS[t] ? t : "catalogue";
+};
+window.addEventListener("popstate", () => { state.tab = tabFromHash(); renderNav(); VIEWS[state.tab](); });
+
+/* ---------- catalogue ---------- */
+const CAT_ICON = { "Brakes": "warn", "Drivetrain": "bike", "Filters": "layers", "Engine & Oils": "layers", "Lighting & Electrical": "info", "Tyres & Tubes": "bike" };
+async function loadStats() {
+  const all = [];
+  for (let page = 1; ; page++) {
+    const b = await api(`/api/products/?page_size=100&page=${page}`);
+    all.push(...b.results);
+    if (!b.next) break;
+  }
+  state.stats = {
+    total: all.length, out: all.filter(p => p.stock <= 0).length, low: all.filter(p => p.stock > 0 && p.stock < 10).length,
+    vehicles: new Set(all.map(p => p.vehicle_fitment).filter(v => v !== "Universal")).size,
+    categories: [...new Set(all.map(p => p.category))].sort(),
+  };
+}
+const VIEWS = {};
+VIEWS.catalogue = async () => {
+  const s = state.stats;
+  $("#view").innerHTML = `
+    <div class="page-head"><div><h1>Parts catalogue</h1><p class="sub">Live prices and stock for every part we distribute.</p></div>
+      <button class="btn btn-primary" id="openCart">${icon("cart")}View cart (${Object.keys(state.cart).length})</button></div>
+    <div class="kpis">
+      ${kpi("grid", "var(--info-soft)", "var(--info)", s ? s.total : "—", "Products")}
+      ${kpi("bike", "var(--brand-soft)", "#b58700", s ? s.vehicles : "—", "Vehicle models")}
+      ${kpi("warn", "var(--warn-soft)", "var(--warn)", s ? s.low : "—", "Low stock (under 10)")}
+      ${kpi("alert", "var(--bad-soft)", "var(--bad)", s ? s.out : "—", "Out of stock")}
+    </div>
+    <div class="card toolbar">
+      <div class="field">${icon("search")}<input id="q" placeholder="Search by SKU, part name or brand" value="${esc(state.q)}"></div>
+      <div class="field">${icon("bike")}<input id="veh" placeholder="Vehicle, e.g. Duke 390" value="${esc(state.vehicle)}"></div>
+      <button class="btn btn-dark" id="go">Search</button>
+    </div>
+    <div class="chips" id="chips">${s ? ["", ...s.categories].map(c => `<button class="chip ${state.category === c ? "on" : ""}" data-cat="${esc(c)}">${esc(c || "All parts")}</button>`).join("") : ""}</div>
+    <div id="results"><div class="grid">${Array.from({ length: 8 }, () => `<div class="card prod"><div class="skeleton" style="height:38px;width:38px"></div><div class="skeleton" style="height:16px"></div><div class="skeleton" style="height:12px;width:60%"></div><div class="skeleton" style="height:22px;width:40%;margin-top:18px"></div></div>`).join("")}</div></div>`;
+  $("#openCart").onclick = openCart;
+  const search = () => { state.q = $("#q").value.trim(); state.vehicle = $("#veh").value.trim(); state.page = 1; loadProducts(); };
+  $("#go").onclick = search;
+  ["#q", "#veh"].forEach(id => $(id).onkeydown = e => { if (e.key === "Enter") search(); });
+  $("#chips").onclick = e => { const c = e.target.closest(".chip"); if (!c) return; state.category = c.dataset.cat; state.page = 1;
+    document.querySelectorAll(".chip").forEach(x => x.classList.toggle("on", x === c)); loadProducts(); };
+  if (!s) { loadStats().then(() => state.tab === "catalogue" && VIEWS.catalogue()).catch(() => {}); }
+  loadProducts();
+};
+function kpi(ic, bg, fg, val, label) {
+  return `<div class="card kpi"><div class="kpi-ico" style="background:${bg};color:${fg}">${icon(ic)}</div><div><b>${val}</b><span>${label}</span></div></div>`;
+}
+async function loadProducts() {
+  const box = $("#results"); if (!box) return;
+  try {
+    const p = new URLSearchParams({ page: state.page, page_size: 24 });
+    if (state.q) p.set("search", state.q);
+    if (state.vehicle) p.set("vehicle", state.vehicle);
+    if (state.category) p.set("category", state.category);
+    const b = await api(`/api/products/?${p}`);
+    if (!b.results.length) { box.innerHTML = `<div class="card empty">${icon("search")}<h3>No parts found</h3><p>Try another search, vehicle or category.</p></div>`; return; }
+    const pages = Math.ceil(b.count / 24);
+    box.innerHTML = `<p class="sub" style="margin:0 0 12px">${b.count} part${b.count === 1 ? "" : "s"}</p><div class="grid">${b.results.map(productCard).join("")}</div>
+      <div class="pager"><button class="btn btn-sm" id="prev" ${b.previous ? "" : "disabled"}>Previous</button><span>Page ${state.page} of ${pages}</span>
+      <button class="btn btn-sm" id="next" ${b.next ? "" : "disabled"}>Next</button></div>`;
+    box.onclick = e => { const btn = e.target.closest("[data-add]"); if (!btn) return; addToCart(JSON.parse(btn.dataset.add)); };
+    $("#prev").onclick = () => { state.page--; loadProducts(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+    $("#next").onclick = () => { state.page++; loadProducts(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  } catch (e) { box.innerHTML = errorAlert(e); }
+}
+function productCard(p) {
+  const data = esc(JSON.stringify({ sku: p.sku, name: p.name, price: p.price, stock: p.stock }));
+  return `<div class="card prod">
+    <div class="prod-top"><div class="cat-ico">${icon(CAT_ICON[p.category] || "box")}</div><span class="sku">${esc(p.sku)}</span></div>
+    <h3>${esc(p.name)}</h3>
+    <div class="meta"><span>${esc(p.brand)}</span><span class="dot"></span><span>${esc(p.category)}</span></div>
+    <div>${stockBadge(p.stock)}</div>
+    <div class="prod-foot"><div class="price">${inr(p.price)}<small>excl. 18% GST</small></div>
+      <button class="btn btn-sm btn-primary" data-add="${data}">${icon("plus")}Add</button></div>
+  </div>`;
+}
+
+/* ---------- cart ---------- */
+function addToCart(p) {
+  const line = state.cart[p.sku] || { ...p, qty: 0 };
+  line.qty += 1; line.price = p.price; line.stock = p.stock;
+  state.cart[p.sku] = line; saveCart();
+  toast(`Added ${p.name}`);
+}
+function openCart() { renderCart(); $("#drawer").classList.add("open"); $("#scrim").classList.add("open"); }
+function closeCart() { $("#drawer").classList.remove("open"); $("#scrim").classList.remove("open"); }
+$("#closeCart").onclick = closeCart; $("#scrim").onclick = closeCart;
+function renderCart(error) {
+  const lines = Object.values(state.cart);
+  if (!lines.length) {
+    $("#cartBody").innerHTML = `<div class="empty">${icon("cart")}<h3>Your cart is empty</h3><p>Add parts from the catalogue to start an order.</p></div>`;
+    $("#cartFoot").innerHTML = `<button class="btn" style="width:100%" id="browse">Browse catalogue</button>`;
+    $("#browse").onclick = () => { closeCart(); state.tab = "catalogue"; show(); };
+    return;
+  }
+  let sub = 0, tax = 0;
+  for (const l of lines) { const s = paise(l.price) * l.qty; sub += s; tax += Math.floor((s * 18 + 50) / 100); }  // per-line GST, half-up
+  $("#cartBody").innerHTML = lines.map(l => `<div class="cart-line">
+      <div><span class="sku">${esc(l.sku)}</span><h4>${esc(l.name)}</h4><div class="sub" style="font-size:12.5px">${inr(l.price)} each ${l.qty > l.stock ? `· <span style="color:var(--warn)">only ${l.stock} in stock</span>` : ""}</div></div>
+      <div class="num"><b>${fromPaise(paise(l.price) * l.qty)}</b></div>
+      <div class="stepper"><button data-dec="${esc(l.sku)}">−</button><input data-qty="${esc(l.sku)}" type="number" min="1" value="${l.qty}"><button data-inc="${esc(l.sku)}">+</button></div>
+      <div class="num"><button class="icon-btn" data-rm="${esc(l.sku)}" aria-label="Remove">${icon("trash")}</button></div>
+    </div>`).join("") + (error ? errorAlert(error) : "");
+  $("#cartFoot").innerHTML = `
+    <div class="sum-row"><span>Subtotal</span><span>${fromPaise(sub)}</span></div>
+    <div class="sum-row"><span>GST (18%, per line)</span><span>${fromPaise(tax)}</span></div>
+    <div class="sum-row total"><span>Estimated total</span><span>${fromPaise(sub + tax)}</span></div>
+    <button class="btn btn-primary" id="placeDraft" style="width:100%;margin-top:14px;padding:12px">${icon("check")}Create draft order</button>
+    <p class="sub" style="font-size:12px;text-align:center;margin-top:8px">Drafts don't reserve stock. Confirm the order to deduct stock.</p>`;
+  $("#cartBody").onclick = e => {
+    const t = e.target.closest("button"); if (!t) return;
+    const sku = t.dataset.inc || t.dataset.dec || t.dataset.rm;
+    if (t.dataset.inc) state.cart[sku].qty++;
+    if (t.dataset.dec) state.cart[sku].qty = Math.max(1, state.cart[sku].qty - 1);
+    if (t.dataset.rm) delete state.cart[sku];
+    saveCart(); renderCart();
+  };
+  $("#cartBody").onchange = e => { const sku = e.target.dataset.qty; if (!sku) return; state.cart[sku].qty = Math.max(1, parseInt(e.target.value) || 1); saveCart(); renderCart(); };
+  $("#placeDraft").onclick = async ev => {
+    ev.target.disabled = true;
+    try {
+      const o = await api("/api/orders/", { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() },
+        body: JSON.stringify({ dealer_id: dealerId(), items: lines.map(l => ({ sku: l.sku, quantity: l.qty })) }) });
+      state.cart = {}; saveCart(); closeCart();
+      toast(`Draft ${o.order_number} created`);
+      state.tab = "orders"; state.openOrder = o.order_number; show();
+    } catch (e) { renderCart(e); }
+  };
+}
+
+/* ---------- orders ---------- */
+VIEWS.orders = async () => {
+  $("#view").innerHTML = `<div class="page-head"><div><h1>Orders</h1><p class="sub">Drafts follow live prices; confirming locks prices and deducts stock.</p></div></div>
+    <div class="split"><div class="card order-list" id="olist"><div class="pad"><div class="skeleton" style="height:120px"></div></div></div><div id="odetail"></div></div>`;
+  try {
+    const b = await api(`/api/orders/?dealer_id=${dealerId()}&page_size=100`);
+    if (!b.results.length) {
+      $("#olist").innerHTML = `<div class="empty">${icon("box")}<h3>No orders yet</h3><p>Add parts to your cart or ask the assistant to put some aside.</p></div>`;
+      $("#odetail").innerHTML = ""; return;
+    }
+    if (!state.openOrder || !b.results.some(o => o.order_number === state.openOrder)) state.openOrder = b.results[0].order_number;
+    $("#olist").innerHTML = b.results.map(o => `<div class="order-row ${o.order_number === state.openOrder ? "on" : ""}" data-open="${esc(o.order_number)}">
+        <div><b>${esc(o.order_number)}</b><div class="sub" style="font-size:12px">${new Date(o.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })} · ${o.items.length} line${o.items.length === 1 ? "" : "s"}</div></div>
+        <div class="amt">${inr(o.grand_total)}<div style="margin-top:4px">${statusBadge(o.status)}</div></div></div>`).join("");
+    $("#olist").onclick = e => { const r = e.target.closest("[data-open]"); if (!r) return; state.openOrder = r.dataset.open;
+      document.querySelectorAll(".order-row").forEach(x => x.classList.toggle("on", x === r)); renderOrder(); };
+    renderOrder();
+  } catch (e) { $("#olist").innerHTML = `<div class="pad">${errorAlert(e)}</div>`; }
+};
+const FLOW = ["DRAFT", "CONFIRMED", "DISPATCHED", "DELIVERED"];
+const ACTIONS = { DRAFT: ["confirm", "cancel"], CONFIRMED: ["dispatch", "cancel"], DISPATCHED: ["deliver"], DELIVERED: [], CANCELLED: [] };
+const ACTION_STYLE = { confirm: "btn-primary", dispatch: "btn-dark", deliver: "btn-dark", cancel: "btn-danger" };
+async function renderOrder(error) {
+  const box = $("#odetail"); if (!box || !state.openOrder) return;
+  try {
+    const o = await api(`/api/orders/${encodeURIComponent(state.openOrder)}/`);
+    const idx = FLOW.indexOf(o.status) + (o.status === "DELIVERED" ? 1 : 0);  // delivered: every step done
+    const timeline = o.status === "CANCELLED"
+      ? `<div class="note" style="background:var(--bad-soft);color:var(--bad)">${icon("alert")}This order was cancelled${o.items.length ? "; any deducted stock has been restored" : ""}.</div>`
+      : `<div class="timeline">${FLOW.map((s, i) => `${i ? `<div class="bar ${i <= idx ? "done" : ""}"></div>` : ""}<div class="step ${i < idx ? "done" : i === idx ? "cur" : ""}"><i>${i < idx ? "✓" : i + 1}</i>${s[0] + s.slice(1).toLowerCase()}</div>`).join("")}</div>`;
+    box.innerHTML = `<div class="card pad">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <div><span class="sub" style="font-size:12px;margin:0">Order</span><h2 style="margin:0;font-size:20px;font-family:ui-monospace,monospace">${esc(o.order_number)}</h2></div>
+        ${statusBadge(o.status)}</div>
+      ${timeline}
+      ${o.status === "DRAFT" ? `<div class="note">${icon("info")}Prices follow the live catalogue until you confirm. Stock is checked and deducted on confirm.</div>` : ""}
+      <div class="scroll-x"><table><tr><th>Part</th><th class="num">Qty</th><th class="num hide-sm">Unit price</th><th class="num hide-sm">GST 18%</th><th class="num">Line total</th></tr>
+        ${o.items.map(i => `<tr><td><span class="sku">${esc(i.sku)}</span><div style="font-weight:600">${esc(i.name)}</div></td><td class="num">${i.quantity}</td>
+          <td class="num hide-sm">${inr(i.unit_price)}</td><td class="num hide-sm">${inr(i.line_tax)}</td><td class="num"><b>${inr(i.line_total)}</b></td></tr>`).join("")}</table></div>
+      <div class="totals"><div class="sum-row"><span>Subtotal</span><span>${inr(o.subtotal)}</span></div>
+        <div class="sum-row"><span>GST</span><span>${inr(o.tax_total)}</span></div>
+        <div class="sum-row total"><span>Grand total</span><span>${inr(o.grand_total)}</span></div></div>
+      ${error ? errorAlert(error) : ""}
+      ${ACTIONS[o.status].length ? `<div class="actions">${ACTIONS[o.status].map(a => `<button class="btn ${ACTION_STYLE[a]}" data-act="${a}">${a[0].toUpperCase() + a.slice(1)}${a === "confirm" ? " order" : ""}</button>`).join("")}</div>` : ""}
+    </div>`;
+    box.onclick = async e => {
+      const b = e.target.closest("[data-act]"); if (!b) return;
+      if (b.dataset.act === "cancel" && !confirm(`Cancel ${o.order_number}?`)) return;
+      b.disabled = true;
+      try { await api(`/api/orders/${encodeURIComponent(o.order_number)}/${b.dataset.act}/`, { method: "POST" }); toast(`Order ${b.dataset.act === "cancel" ? "cancelled" : b.dataset.act + "ed"}`); state.stats = null; VIEWS.orders(); }
+      catch (err) { renderOrder(err); toast(err.code === "INSUFFICIENT_STOCK" ? "Not enough stock to confirm" : err.message, true); }
+    };
+  } catch (e) { box.innerHTML = `<div class="card pad">${errorAlert(e)}</div>`; }
+}
+
+/* ---------- assistant ---------- */
+const SUGGESTIONS = ["Brake pads for a Duke 390?", "How many are in stock?", "Put 10 aside for me", "Chain lube options"];
+VIEWS.assistant = () => {
+  $("#view").innerHTML = `<div class="page-head"><div><h1>Dealer Assistant</h1><p class="sub">Find parts, check live stock and put parts aside as draft orders.</p></div>
+      <button class="btn btn-sm" id="newChat">New conversation</button></div>
+    <div class="card chat-wrap"><div class="chat" id="chat"></div>
+      <div class="composer"><div class="suggest" id="suggest">${SUGGESTIONS.map(s => `<button class="chip" data-s="${esc(s)}">${esc(s)}</button>`).join("")}</div>
+        <form id="form"><input id="msg" placeholder="Ask about a part, a vehicle or stock..." autocomplete="off"><button class="btn btn-primary">${icon("send")}Send</button></form></div></div>`;
+  if (!state.chatLog.length) state.chatLog.push({ who: "bot", html: "Hi! I'm your DealerDesk assistant. Tell me the part and the vehicle, e.g. <strong>brake pads for a Pulsar 150</strong>, and I'll check live stock and prices. I can also put parts aside as a draft order." });
+  $("#chat").innerHTML = state.chatLog.map(renderMsg).join("");
+  scrollChat();
+  $("#newChat").onclick = () => { state.session = "portal-" + Math.random().toString(36).slice(2, 9); state.chatLog = []; VIEWS.assistant(); };
+  $("#suggest").onclick = e => { const c = e.target.closest("[data-s]"); if (c) send(c.dataset.s); };
+  $("#form").onsubmit = e => { e.preventDefault(); const t = $("#msg").value.trim(); if (t) { $("#msg").value = ""; send(t); } };
+  $("#chat").onclick = e => { const o = e.target.closest("[data-order]"); if (o) { state.openOrder = o.dataset.order; state.tab = "orders"; show(); }
+    const a = e.target.closest("[data-add]"); if (a) addToCart(JSON.parse(a.dataset.add)); };
+  $("#msg").focus();
+};
+const renderMsg = m => `<div class="msg ${m.who}"><div class="avatar">${m.who === "bot" ? "D" : "You".slice(0, 1)}</div><div>${m.typing ? `<div class="bubble typing"><span></span><span></span><span></span></div>` : `<div class="bubble">${m.html}</div>${m.extra || ""}`}</div></div>`;
+const scrollChat = () => { const c = $("#chat"); if (c) c.scrollTop = c.scrollHeight; };
+const fmtReply = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*\*/g, "");
+async function send(text) {
+  state.chatLog.push({ who: "me", html: esc(text) });
+  const pending = { who: "bot", typing: true };
+  state.chatLog.push(pending);
+  const redraw = () => { const c = $("#chat"); if (c) { c.innerHTML = state.chatLog.map(renderMsg).join(""); scrollChat(); } };
+  redraw();
+  try {
+    const b = await api("/api/assistant/chat/", { method: "POST", body: JSON.stringify({ session_id: state.session, dealer_id: dealerId(), message: text }) });
+    const products = await Promise.all(b.cited_skus.slice(0, 4).map(s => api(`/api/products/${encodeURIComponent(s)}/`).catch(() => null)));
+    let extra = "";
+    if (b.tool_calls.length) extra += `<div class="tool-row">${b.tool_calls.map(t => `<span class="tool">${esc(t.name)}</span>`).join("")}</div>`;
+    const cards = products.filter(Boolean);
+    if (cards.length) extra += `<div class="mini-cards">${cards.map(p => `<div class="mini"><span class="sku">${esc(p.sku)}</span><b>${esc(p.name)}</b>
+        <div class="mini-foot"><span class="price" style="font-size:15px">${inr(p.price)}</span>${stockBadge(p.stock)}</div>
+        <button class="btn btn-sm" style="width:100%;margin-top:8px" data-add="${esc(JSON.stringify({ sku: p.sku, name: p.name, price: p.price, stock: p.stock }))}">${icon("plus")}Add to cart</button></div>`).join("")}</div>`;
+    for (const a of b.actions) extra += `<div class="action-card"><span>${icon("check").replace("<svg", '<svg style="width:16px;height:16px;vertical-align:-3px;margin-right:6px"')}Draft ${esc(a.order_number)} created</span><button class="btn btn-sm" data-order="${esc(a.order_number)}">View order</button></div>`;
+    Object.assign(pending, { typing: false, html: fmtReply(b.reply), extra });
+  } catch (e) {
+    Object.assign(pending, { typing: false, html: `<span style="color:var(--bad)">${esc(e.message)}</span>` });
+  }
+  redraw();
+}
+
+/* ---------- reorder ---------- */
+VIEWS.reorder = async () => {
+  $("#view").innerHTML = `<div class="page-head"><div><h1>Reorder suggestions</h1><p class="sub">Forecast demand over each SKU's supplier lead time plus safety stock, against live stock.</p></div>
+      <label class="chip" style="display:inline-flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="only" checked> Needs reorder only</label></div>
+    <div class="kpis" id="rk"></div><div class="card" id="rt"><div class="pad"><div class="skeleton" style="height:240px"></div></div></div>`;
+  try {
+    const rows = (await api("/api/reorder-suggestions/")).results.sort((a, b) => b.reorder_qty - a.reorder_qty);
+    const need = rows.filter(r => r.reorder_qty > 0);
+    $("#rk").innerHTML = kpi("chart", "var(--info-soft)", "var(--info)", rows.length, "Forecast SKUs")
+      + kpi("warn", "var(--warn-soft)", "var(--warn)", need.length, "Need reordering")
+      + kpi("box", "var(--brand-soft)", "#b58700", need.reduce((s, r) => s + r.reorder_qty, 0).toLocaleString("en-IN"), "Units to order")
+      + kpi("check", "var(--ok-soft)", "var(--ok)", rows.length - need.length, "Covered by stock");
+    const draw = () => {
+      const list = $("#only").checked ? need : rows;
+      $("#rt").innerHTML = !list.length ? `<div class="empty">${icon("check")}<h3>All covered</h3><p>Every forecast SKU has enough stock for its lead time.</p></div>` : `<div class="scroll-x"><table>
+        <tr><th>SKU</th><th class="num">Stock</th><th>Stock vs reorder point</th><th class="num hide-sm">Lead time</th><th class="num hide-sm">Lead-time demand</th><th class="num hide-sm">Safety stock</th><th class="num">Reorder qty</th></tr>
+        ${list.map(r => { const max = Math.max(r.reorder_point, r.current_stock, 1) * 1.15; const pct = Math.min(100, r.current_stock / max * 100); const mark = r.reorder_point / max * 100;
+          const col = r.reorder_qty > 0 ? (r.current_stock < r.reorder_point / 2 ? "var(--bad)" : "var(--warn)") : "var(--ok)";
+          return `<tr><td><b class="sku" style="color:var(--ink);font-size:12.5px">${esc(r.sku)}</b></td><td class="num">${r.current_stock}</td>
+            <td><div class="meter" title="Reorder point ${r.reorder_point.toFixed(1)}"><span style="width:${pct}%;background:${col}"></span><i style="left:${mark}%"></i></div></td>
+            <td class="num hide-sm">${r.lead_time_weeks} wk</td><td class="num hide-sm">${r.lead_time_demand.toFixed(1)}</td><td class="num hide-sm">${r.safety_stock}</td>
+            <td class="num">${r.reorder_qty > 0 ? `<span class="badge b-warn" style="font-size:13px">${r.reorder_qty}</span>` : `<span class="badge b-ok">0</span>`}</td></tr>`; }).join("")}
+        </table></div>`;
+    };
+    $("#only").onchange = draw; draw();
+  } catch (e) { $("#rt").innerHTML = `<div class="pad">${errorAlert(e)}</div>`; }
+};
+
+/* ---------- boot ---------- */
+(async () => {
+  renderNav();
+  try {
+    const b = await api("/api/dealers/?page_size=100");
+    state.dealers = b.results;
+    $("#dealer").innerHTML = b.results.map(d => `<option value="${d.id}">${esc(d.dealer_code)} · ${esc(d.name)}</option>`).join("");
+    const meta = () => { const d = state.dealers.find(x => x.id === dealerId()); $("#dealerMeta").innerHTML = d ? `${esc(d.city || "")}${d.gstin ? `<br>GSTIN ${esc(d.gstin)}` : ""}<br>Credit limit ${inr(d.credit_limit)}` : ""; };
+    meta();
+    $("#dealer").onchange = () => { meta(); state.session = "portal-" + Math.random().toString(36).slice(2, 9); state.chatLog = []; state.openOrder = null; show(); };
+  } catch (e) { toast(e.message, true); }
+  state.tab = tabFromHash();
+  show();
+})();
+</script>
+</body>
+</html>
